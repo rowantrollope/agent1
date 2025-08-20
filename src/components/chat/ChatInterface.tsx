@@ -1,12 +1,19 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { ChatMessage as ChatMessageType } from '@/lib/openai/agent';
-import { ChatMessage } from './ChatMessage';
-import { ChatInput } from './ChatInput';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Trash2, Bot } from 'lucide-react';
+import { useState, useEffect, useRef } from "react";
+import { ChatMessage as ChatMessageType } from "@/lib/types";
+
+interface RawChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+}
+import { ChatMessage } from "./ChatMessage";
+import { ChatInput } from "./ChatInput";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Trash2, Bot } from "lucide-react";
 
 export function ChatInterface() {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
@@ -14,7 +21,7 @@ export function ChatInterface() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -28,16 +35,18 @@ export function ChatInterface() {
 
   const loadChatHistory = async () => {
     try {
-      const response = await fetch('/api/chat');
+      const response = await fetch("/api/chat-python");
       const data = await response.json();
       if (data.history) {
-        setMessages(data.history.map((msg: any) => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp)
-        })));
+        setMessages(
+          data.history.map((msg: RawChatMessage) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp),
+          })),
+        );
       }
     } catch (error) {
-      console.error('Failed to load chat history:', error);
+      console.error("Failed to load chat history:", error);
     }
   };
 
@@ -45,10 +54,10 @@ export function ChatInterface() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
+      const response = await fetch("/api/chat-python", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ message: messageContent }),
       });
@@ -56,13 +65,15 @@ export function ChatInterface() {
       const data = await response.json();
 
       if (data.history) {
-        setMessages(data.history.map((msg: any) => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp)
-        })));
+        setMessages(
+          data.history.map((msg: RawChatMessage) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp),
+          })),
+        );
       }
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error("Failed to send message:", error);
     } finally {
       setIsLoading(false);
     }
@@ -70,19 +81,19 @@ export function ChatInterface() {
 
   const handleClearChat = async () => {
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
+      const response = await fetch("/api/chat-python", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ action: 'clear' }),
+        body: JSON.stringify({ action: "clear" }),
       });
 
       if (response.ok) {
         setMessages([]);
       }
     } catch (error) {
-      console.error('Failed to clear chat:', error);
+      console.error("Failed to clear chat:", error);
     }
   };
 
@@ -94,15 +105,17 @@ export function ChatInterface() {
           <Bot className="h-5 w-5" />
           <h2 className="font-semibold">Agent1 Chat</h2>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleClearChat}
-          disabled={isLoading || messages.length === 0}
-        >
-          <Trash2 className="h-4 w-4 mr-1" />
-          Clear
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleClearChat}
+            disabled={isLoading || messages.length === 0}
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            Clear
+          </Button>
+        </div>
       </div>
 
       {/* Messages */}
@@ -112,7 +125,9 @@ export function ChatInterface() {
             <div className="text-center">
               <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p className="text-lg font-medium mb-2">Welcome to Agent1</p>
-              <p className="text-sm">Start a conversation by typing a message below.</p>
+              <p className="text-sm">
+                Start a conversation by typing a message below.
+              </p>
             </div>
           </div>
         ) : (
