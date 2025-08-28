@@ -23,6 +23,29 @@
 # misc
 .DS_Store
 *.pem
+*.log
+
+# editors/IDE
+.vscode/
+.idea/
+.ropeproject/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+venv/
+.venv/
+ENV/
+env/
+build/
+dist/
 
 # debug
 npm-debug.log*
@@ -32,6 +55,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+
+# local config
+mcp_servers.json
+.claude/
 
 # vercel
 .vercel

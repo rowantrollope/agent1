@@ -1,0 +1,39 @@
+{
+  "servers": {
+    "localmcp": {
+      "enabled": true,
+      "path": "mcp_servers/localmcp/mcp_server.py",
+      "description": "Built-in local MCP server with basic tools",
+      "env_vars": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+      },
+      "args": [],
+      "timeout": 30
+    },
+    "agent-memory-server": {
+      "enabled": true,
+      "path": "scripts/agent_memory_server_mcp_wrapper.py",
+      "description": "Redis-powered memory server for AI agents with working and long-term memory",
+      "env_vars": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+      },
+      "args": [],
+      "timeout": 30
+    }
+  },
+  "global_env_vars": {
+    "OPENAI_API_KEY": ""
+  },
+  "alternate_servers": {
+    "remem": {
+      "enabled": false,
+      "path": "../remem/mcp_server.py",
+      "description": "External remem MCP server for memory management",
+      "env_vars": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+      },
+      "args": [],
+      "timeout": 30
+    }
+  }
+}
