@@ -52,6 +52,15 @@ export function ChatInterface() {
   };
 
   const handleSendMessage = async (messageContent: string) => {
+    // Add user message immediately
+    const userMessage: ChatMessageType = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      content: messageContent,
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
@@ -144,10 +153,13 @@ export function ChatInterface() {
               {isLoading && (
                 <div className="flex justify-start mb-4">
                   <div className="bg-muted text-muted-foreground rounded-lg px-4 py-2">
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 bg-current rounded-full animate-pulse" />
-                      <div className="w-2 h-2 bg-current rounded-full animate-pulse delay-100" />
-                      <div className="w-2 h-2 bg-current rounded-full animate-pulse delay-200" />
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">Thinking</span>
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-current rounded-full animate-pulse" />
+                        <div className="w-2 h-2 bg-current rounded-full animate-pulse delay-100" />
+                        <div className="w-2 h-2 bg-current rounded-full animate-pulse delay-200" />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -160,7 +172,7 @@ export function ChatInterface() {
         {/* Input */}
         <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
       </Card>
-      
+
       {/* Tools Panel */}
       <ToolsPanel />
     </div>

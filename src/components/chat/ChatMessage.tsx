@@ -13,13 +13,44 @@ export function ChatMessage({ message }: ChatMessageProps) {
   // Attempt to parse JSON content for pretty display
   let parsedJson: unknown | null = null;
   (() => {
-    const text = typeof message.content === "string" ? message.content.trim() : "";
+    const text =
+      typeof message.content === "string" ? message.content.trim() : "";
     if (!text) return;
-    // Quick heuristics to avoid trying to parse all text
-    const looksLikeJson = (text.startsWith("{") && text.endsWith("}")) || (text.startsWith("[") && text.endsWith("]"));
-    if (!looksLikeJson) return;
+
+    // Try to parse as JSON - be more aggressive about detection
     try {
       parsedJson = JSON.parse(text);
+      // If we successfully parsed, check if it's a meaningful object/array
+      if (typeof parsedJson === "object" && parsedJson !== null) {
+        // Check for nested JSON strings and parse them too
+        const parseNestedJson = (obj: any): any => {
+          if (typeof obj === "string") {
+            try {
+              const nested = JSON.parse(obj);
+              if (typeof nested === "object" && nested !== null) {
+                return parseNestedJson(nested);
+              }
+            } catch (_) {
+              // Not JSON, return as is
+            }
+            return obj;
+          } else if (Array.isArray(obj)) {
+            return obj.map(parseNestedJson);
+          } else if (typeof obj === "object" && obj !== null) {
+            const result: any = {};
+            for (const [key, value] of Object.entries(obj)) {
+              result[key] = parseNestedJson(value);
+            }
+            return result;
+          }
+          return obj;
+        };
+
+        parsedJson = parseNestedJson(parsedJson);
+      } else {
+        // Don't format simple strings/numbers as JSON
+        parsedJson = null;
+      }
     } catch (_) {
       parsedJson = null;
     }
@@ -41,14 +72,18 @@ export function ChatMessage({ message }: ChatMessageProps) {
         )}
       >
         {parsedJson !== null ? (
-          <pre className={cn(
-            "text-xs md:text-sm whitespace-pre-wrap break-words font-mono",
-            isUser ? "opacity-95" : "opacity-90",
-          )}>
+          <pre
+            className={cn(
+              "text-xs md:text-sm whitespace-pre-wrap break-words font-mono",
+              isUser ? "opacity-95" : "opacity-90",
+            )}
+          >
             {JSON.stringify(parsedJson, null, 2)}
           </pre>
         ) : (
-          <div className="whitespace-pre-wrap break-words">{message.content}</div>
+          <div className="whitespace-pre-wrap break-words">
+            {message.content}
+          </div>
         )}
         <div className="text-xs opacity-70 mt-1">
           {message.timestamp.toLocaleTimeString([], {
