@@ -1,7 +1,7 @@
 """
 MCP Setup Script
 
-This script helps initialize and configure MCP server connections for the Agent1 project.
+This script helps initialize and configure MCP server connections for the DateGPT project.
 Run this script to set up your MCP servers before starting the agent.
 """
 
@@ -16,7 +16,7 @@ from mcp_client import mcp_manager
 def print_banner():
     """Print setup banner."""
     print("=" * 60)
-    print("🔧 Agent1 MCP Server Setup")
+    print("🔧 DateGPT MCP Server Setup")
     print("=" * 60)
 
 
@@ -116,7 +116,7 @@ def save_configuration():
 
         # Write back to .env.local
         with open(env_file_path, 'w') as f:
-            f.write("# Agent1 Environment Configuration\n")
+            f.write("# DateGPT Environment Configuration\n")
             f.write("# This file is automatically updated by setup_mcp.py\n\n")
 
             for key, value in env_vars.items():
@@ -193,8 +193,8 @@ async def main():
     print("\n✅ MCP setup complete!")
     print("\nNext steps:")
     print("1. Start your MCP servers (e.g., the remem server)")
-    print("2. Start the Agent1 backend: npm run python:start")
-    print("3. Start the Agent1 frontend: npm run dev")
+    print("2. Start the DateGPT backend: npm run python:start")
+    print("3. Start the DateGPT frontend: npm run dev")
 
     print("\nYour agent will now have access to MCP server tools!")
 

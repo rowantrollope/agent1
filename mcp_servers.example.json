@@ -19,10 +19,25 @@
       },
       "args": [],
       "timeout": 30
+    },
+    "redis-dating": {
+      "enabled": true,
+      "path": "mcp_servers/redis-dating/mcp_server.py",
+      "description": "Redis-based dating information management - single source of truth for people being dated",
+      "env_vars": {
+        "REDIS_HOST": "${REDIS_HOST}",
+        "REDIS_PORT": "${REDIS_PORT}",
+        "REDIS_DB": "${REDIS_DB}"
+      },
+      "args": [],
+      "timeout": 30
     }
   },
   "global_env_vars": {
-    "OPENAI_API_KEY": ""
+    "OPENAI_API_KEY": "",
+    "REDIS_HOST": "localhost",
+    "REDIS_PORT": "6379",
+    "REDIS_DB": "0"
   },
   "alternate_servers": {
     "remem": {

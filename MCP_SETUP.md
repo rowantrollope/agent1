@@ -1,10 +1,10 @@
 # MCP Server Integration Setup
 
-This guide explains how to integrate external MCP (Model Context Protocol) servers with your Agent1 Python backend.
+This guide explains how to integrate external MCP (Model Context Protocol) servers with your DateGPT Python backend.
 
 ## Overview
 
-Agent1 can connect to external MCP servers running as separate processes, allowing you to extend the agent's capabilities without importing large codebases into this project. This is perfect for connecting to complex systems like your remem server.
+DateGPT can connect to external MCP servers running as separate processes, allowing you to extend the agent's capabilities without importing large codebases into this project. This is perfect for connecting to complex systems like your remem server.
 
 ## Prerequisites
 
@@ -49,12 +49,12 @@ Example: /Users/yourusername/projects/remem/mcp_server.py
    python mcp_server.py
    ```
 
-2. **Start Agent1 backend**:
+2. **Start DateGPT backend**:
    ```bash
    npm run python:start
    ```
 
-3. **Start Agent1 frontend**:
+3. **Start DateGPT frontend**:
    ```bash
    npm run dev
    ```
@@ -220,7 +220,7 @@ proc.terminate()
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│  Frontend       │    │  Agent1 Python   │    │  External MCP   │
+│  Frontend       │    │  DateGPT Python  │    │  External MCP   │
 │  (Next.js)      │◄──►│  Backend         │◄──►│  Server         │
 │                 │    │  (FastAPI)       │    │  (remem, etc.)  │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
@@ -244,12 +244,12 @@ proc.terminate()
 
 ### Network Security
 - MCP servers communicate via stdio (secure by default)
-- No network ports exposed between Agent1 and MCP servers
+- No network ports exposed between DateGPT and MCP servers
 - All external API calls (OpenAI, Redis) use standard security practices
 
 ### Process Isolation
 - MCP servers run as separate processes
-- Failures in MCP servers don't crash Agent1
+- Failures in MCP servers don't crash DateGPT
 - Easy to restart individual servers independently
 
 ## Performance Tips

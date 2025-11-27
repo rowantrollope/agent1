@@ -7,10 +7,10 @@ venv_path = os.path.join(agent_dir, 'venv', 'lib', 'python3.12', 'site-packages'
 if os.path.exists(venv_path):
     sys.path.insert(0, venv_path)
 """
-Simple Test MCP Server for Agent1
+Simple Test MCP Server for DateGPT
 
 This is a basic MCP server implementation that provides simple tools
-for testing the MCP integration in Agent1.
+for testing the MCP integration in DateGPT.
 """
 
 import asyncio

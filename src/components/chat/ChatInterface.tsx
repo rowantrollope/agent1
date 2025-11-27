@@ -112,13 +112,13 @@ export function ChatInterface() {
   };
 
   return (
-    <div className="flex flex-col">
-      <Card className="h-[600px] flex flex-col">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden">
+      <Card className="flex flex-col flex-1 min-h-0">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b bg-muted/50">
+        <div className="flex items-center justify-between p-4 border-b bg-muted/50 flex-shrink-0">
           <div className="flex items-center gap-2">
             <Bot className="h-5 w-5" />
-            <h2 className="font-semibold">Agent1 Chat</h2>
+            <h2 className="font-semibold">Chat</h2>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -134,12 +134,12 @@ export function ChatInterface() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4 min-h-0">
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full text-muted-foreground">
               <div className="text-center">
                 <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium mb-2">Welcome to Agent1</p>
+                <p className="text-lg font-medium mb-2">Welcome to DateGPT</p>
                 <p className="text-sm">
                   Start a conversation by typing a message below.
                 </p>
@@ -170,11 +170,15 @@ export function ChatInterface() {
         </div>
 
         {/* Input */}
-        <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
+        <div className="flex-shrink-0">
+          <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
+        </div>
       </Card>
 
       {/* Tools Panel */}
-      <ToolsPanel />
+      <div className="flex-shrink-0">
+        <ToolsPanel />
+      </div>
     </div>
   );
 }

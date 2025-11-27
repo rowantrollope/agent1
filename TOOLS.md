@@ -1,6 +1,6 @@
-# Agent1 Tool System Documentation
+# DateGPT Tool System Documentation
 
-This document describes the tool system implemented in Agent1's Python agent backend, enabling the AI to perform external actions and access system resources.
+This document describes the tool system implemented in DateGPT's Python agent backend, enabling the AI to perform external actions and access system resources.
 
 ## Overview
 

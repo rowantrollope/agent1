@@ -1,4 +1,4 @@
-# Agent1
+# DateGPT
 
 A modern agentic application built with a Python agent backend and Next.js frontend, featuring a ChatGPT-like web interface powered by OpenAI.
 

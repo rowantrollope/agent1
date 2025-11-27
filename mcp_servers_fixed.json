@@ -1,0 +1,69 @@
+{
+  "servers": {
+    "localmcp": {
+      "enabled": true,
+      "path": "/Users/rowantrollope/git/agent1/mcp_servers/localmcp/mcp_server.py",
+      "description": "Built-in local MCP server with basic tools",
+      "env_vars": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+      },
+      "args": [],
+      "timeout": 30
+    },
+    "agent-memory-server": {
+      "enabled": true,
+      "path": "/Users/rowantrollope/git/agent1/scripts/agent_memory_server_mcp_wrapper.py",
+      "description": "Redis-powered memory server for AI agents with working and long-term memory",
+      "env_vars": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+      },
+      "args": [],
+      "timeout": 30
+    },
+    "sms-imessage": {
+      "enabled": true,
+      "path": "/Users/rowantrollope/git/agent1/sms_imessage_server_fixed.py",
+      "description": "SMS and iMessage integration server for sending/receiving messages",
+      "env_vars": {
+        "TWILIO_ACCOUNT_SID": "${TWILIO_ACCOUNT_SID}",
+        "TWILIO_AUTH_TOKEN": "${TWILIO_AUTH_TOKEN}",
+        "TWILIO_PHONE_NUMBER": "${TWILIO_PHONE_NUMBER}"
+      },
+      "args": [],
+      "timeout": 30
+    },
+    "redis-dating": {
+      "enabled": true,
+      "path": "/Users/rowantrollope/git/agent1/mcp_servers/redis-dating/mcp_server.py",
+      "description": "Redis-based dating information management - single source of truth for people being dated",
+      "env_vars": {
+        "REDIS_HOST": "${REDIS_HOST}",
+        "REDIS_PORT": "${REDIS_PORT}",
+        "REDIS_DB": "${REDIS_DB}"
+      },
+      "args": [],
+      "timeout": 30
+    }
+  },
+  "global_env_vars": {
+    "OPENAI_API_KEY": "",
+    "TWILIO_ACCOUNT_SID": "",
+    "TWILIO_AUTH_TOKEN": "",
+    "TWILIO_PHONE_NUMBER": "",
+    "REDIS_HOST": "localhost",
+    "REDIS_PORT": "6379",
+    "REDIS_DB": "0"
+  },
+  "alternate_servers": {
+    "remem": {
+      "enabled": true,
+      "path": "/Users/rowantrollope/git/remem/mcp_server.py",
+      "description": "External remem MCP server for memory management",
+      "env_vars": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+      },
+      "args": [],
+      "timeout": 30
+    }
+  }
+}

@@ -36,7 +36,7 @@ class MCPClientManager:
         self.stdio_contexts: Dict[str, Any] = {}
 
     def add_server(self, name: str, server_path: str, args: List[str] = None,
-                   env: Dict[str, str] = None, python_path: str = None):
+                   env: Dict[str, str] = None, python_path: str = None, command: str = None):
         """
         Add an MCP server configuration.
 
@@ -45,17 +45,26 @@ class MCPClientManager:
             server_path: Path to the server script or executable
             args: Additional arguments for the server
             env: Environment variables for the server
-            python_path: Python executable path (defaults to sys.executable)
+            python_path: Python executable path (defaults to sys.executable) - deprecated, use command instead
+            command: Command to run (e.g., 'python', 'node') - defaults to sys.executable
         """
         if not MCP_AVAILABLE:
             logger.warning(f"Cannot add server {name}: MCP not available")
             return
 
+        # Determine the command to use
+        if command:
+            exec_path = command
+        elif python_path:
+            exec_path = python_path
+        else:
+            exec_path = sys.executable
+
         self.servers[name] = {
             'path': server_path,
             'args': args or [],
             'env': env or {},
-            'python_path': python_path or sys.executable,
+            'command': exec_path,
             'connected': False
         }
 
@@ -87,14 +96,15 @@ class MCPClientManager:
 
         try:
             # Prepare server parameters to spawn the process
-            command = [server_config['python_path'], server_path] + server_config['args']
+            exec_command = server_config.get('command', sys.executable)
+            command = [exec_command, server_path] + server_config['args']
             env = {**os.environ, **server_config['env']}
             
             logger.info(f"Starting MCP server: {' '.join(command)}")
             
             # Create stdio server parameters
             server_params = StdioServerParameters(
-                command=command[0],  # Python executable
+                command=command[0],  # Executable (python, node, etc.)
                 args=command[1:],     # Script path and args
                 env=env
             )
@@ -249,7 +259,7 @@ class MCPClientManager:
 # Global MCP client manager instance
 mcp_manager = MCPClientManager()
 
-def setup_mcp_server(name: str, server_path: str, env_vars: Dict[str, str] = None, python_path: str = None):
+def setup_mcp_server(name: str, server_path: str, env_vars: Dict[str, str] = None, python_path: str = None, command: str = None, args: List[str] = None):
     """
     Setup an MCP server for spawning.
 
@@ -257,7 +267,9 @@ def setup_mcp_server(name: str, server_path: str, env_vars: Dict[str, str] = Non
         name: Server name
         server_path: Path to the MCP server script
         env_vars: Additional environment variables
-        python_path: Python executable path
+        python_path: Python executable path (deprecated, use command instead)
+        command: Command to run (e.g., 'python', 'node')
+        args: Additional arguments for the server
     """
     logger.info(f"Setting up MCP server '{name}' at path: {server_path}")
     
@@ -265,19 +277,21 @@ def setup_mcp_server(name: str, server_path: str, env_vars: Dict[str, str] = Non
         logger.error(f"MCP server script not found: {server_path}")
         return False
     
-    # Ensure the server script is executable
-    try:
-        os.chmod(server_path, 0o755)
-    except Exception as e:
-        logger.warning(f"Could not make server script executable: {e}")
+    # Ensure the server script is executable (only for Python scripts)
+    if not command or command == 'python' or command == sys.executable:
+        try:
+            os.chmod(server_path, 0o755)
+        except Exception as e:
+            logger.warning(f"Could not make server script executable: {e}")
     
     env = env_vars or {}
     
     mcp_manager.add_server(
         name=name,
         server_path=server_path,
+        args=args or [],
         env=env,
-        python_path=python_path
+        command=command or python_path
     )
     
     logger.info(f"MCP server '{name}' configured")

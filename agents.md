@@ -1,6 +1,6 @@
-# Agent1 Project Overview for Coding Agents
+# DateGPT Project Overview for Coding Agents
 
-Agent1 is an advanced agentic application combining a ChatGPT-like interface with a powerful Python agent backend. This document provides vital information for coding agents to understand and contribute effectively to the project.
+DateGPT is an advanced agentic application combining a ChatGPT-like interface with a powerful Python agent backend. This document provides vital information for coding agents to understand and contribute effectively to the project.
 
 ## Project Features
 
@@ -27,7 +27,7 @@ Agent1 is an advanced agentic application combining a ChatGPT-like interface wit
 ## Project Structure
 
 ```
-agent1/
+dategpt/
 ├── src/                    # Next.js frontend source
 │   ├── app/               # Next.js app router
 │   ├── components/        # React components
@@ -45,7 +45,7 @@ agent1/
 1. **Clone the Repository**:
    ```bash
    git clone <repo-url>
-   cd agent1
+   cd dategpt
    ```
 
 2. **Install Frontend Dependencies**:
@@ -84,7 +84,7 @@ The frontend communicates with the Python backend through these endpoints:
 
 ## Contribution Guidelines
 
-To contribute to Agent1:
+To contribute to DateGPT:
 - **Fork the Repository**: Create a personal fork and clone it locally
 - **Create a Feature Branch**: Work on your feature or fix in a separate branch
 - **Test Your Changes**: Ensure both frontend and backend work correctly
@@ -106,4 +106,4 @@ For detailed technical documentation, please refer to:
 
 ## License
 
-Agent1 is released under the MIT License. For more details, see the LICENSE file included in the repository.
+DateGPT is released under the MIT License. For more details, see the LICENSE file included in the repository.

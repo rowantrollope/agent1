@@ -4,10 +4,10 @@ const PYTHON_BACKEND_URL = process.env.PYTHON_BACKEND_URL || 'http://localhost:8
 
 export async function POST(
   request: Request,
-  { params }: { params: { serverName: string } }
+  { params }: { params: Promise<{ serverName: string }> }
 ) {
   try {
-    const { serverName } = params;
+    const { serverName } = await params;
     
     const response = await fetch(`${PYTHON_BACKEND_URL}/mcp/disable/${serverName}`, {
       method: 'POST',
