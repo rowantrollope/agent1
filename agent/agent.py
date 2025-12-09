@@ -103,14 +103,16 @@ Tool usage guidance:
   - **When storing NEW INFORMATION about a person** (detected from statements, not questions):
     1. First, get or create the person record using `redis-dating_get_person` or `redis-dating_create_person`
     2. Extract or generate the `memory_tags` from the person record (if missing, create tags like "person-name,dating")
-    3. Store the detailed memory using agent-memory-server tools (e.g., `agent-memory-server_store_memory` or similar) with the memory_tags
+    3. Store the detailed memory using `agent-memory-server_create_long_term_memories` with the memory_tags. Pass a `memories` array with objects containing: text, memory_type (semantic/episodic), event_date, topics, entities
     4. **NEVER update the `details` field in Redis** - it is computed automatically from memory server when displaying
   - **When answering QUESTIONS** (e.g., "What do I know about X?", "Who is Y?"):
     - Do NOT store any memories - only retrieve and present information
+    - Use `agent-memory-server_search_long_term_memory` with `text` parameter to search for memories about the person
     - Query both Redis (for structured data) and agent-memory-server (for detailed memories)
   - **NEVER** store any information in the Redis `details` field - it is read-only and computed from agent-memory-server
   - The `details` field is automatically generated from memories in agent-memory-server when displaying in the dashboard
   - All memories, conversations, preferences, hobbies, anecdotes, and any information about a person MUST go to agent-memory-server only
+  - Available agent-memory-server tools: `create_long_term_memories`, `search_long_term_memory`, `get_long_term_memory`, `edit_long_term_memory`, `delete_long_term_memories`
 - Always use these tools proactively when the user mentions someone they're dating or asks about dating history.
 - When storing information, be thorough but organized - use create_person for new people, update_person for existing people.
 - When retrieving information, present it in a friendly, conversational way that helps the user prepare for dates or reflect on their dating history.
@@ -177,8 +179,24 @@ General behavior:
         # Get MCP tools
         try:
             mcp_tools = await get_mcp_tools()
-            all_tools.extend(mcp_tools)
-            self.mcp_tools_cache = mcp_tools
+            
+            # Filter out problematic tools that require FastAPI dependencies
+            # These tools can't work through MCP because they require background_tasks or other FastAPI-specific parameters
+            problematic_tools = [
+                "agent-memory-server_search_long_term_memory",  # Requires background_tasks
+            ]
+            
+            filtered_tools = []
+            for tool in mcp_tools:
+                tool_name = tool.get("function", {}).get("name", "")
+                # Skip tools that are known to be broken
+                if any(problematic in tool_name for problematic in problematic_tools):
+                    print(f"Filtering out problematic tool: {tool_name}")
+                    continue
+                filtered_tools.append(tool)
+            
+            all_tools.extend(filtered_tools)
+            self.mcp_tools_cache = filtered_tools
         except Exception as e:
             print(f"Warning: Could not load MCP tools: {e}")
 

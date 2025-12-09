@@ -59,7 +59,6 @@ export function DossierPage() {
   const [selectedName, setSelectedName] = useState("");
   const [dossier, setDossier] = useState<DossierPayload | null>(null);
   const [chatHistory, setChatHistory] = useState<DossierChatMessage[]>([]);
-  const [loading, setLoading] = useState(false);
   const [secondaryLoading, setSecondaryLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [detailsDraft, setDetailsDraft] = useState({
@@ -184,7 +183,6 @@ export function DossierPage() {
     async (targetName?: string) => {
       if (!targetName && !selectedName) return;
       const name = targetName || selectedName;
-      setLoading(true);
       setError(null);
       try {
         const response = await fetch(
@@ -212,8 +210,6 @@ export function DossierPage() {
         fetchDossierBrief(name);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load dossier");
-      } finally {
-        setLoading(false);
       }
     },
     [selectedName, fetchDossierBrief],
@@ -359,7 +355,7 @@ export function DossierPage() {
           <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h1 className="mt-3 flex items-center gap-3 text-4xl tracking-tight text-slate-900 sm:text-5xl">
-                Love <Heart className="h-8 w-8 text-red-500 sm:h-10 sm:w-10" />
+                Matches <Heart className="h-8 w-8 text-red-500 sm:h-10 sm:w-10" />
               </h1>
               {heroSubtitle && (
                 <p className="mt-2 text-sm text-slate-600">{heroSubtitle}</p>
@@ -403,63 +399,74 @@ export function DossierPage() {
             </div>
           )}
 
-          {loading && (
-            <div className="flex items-center gap-3">
-              <Loader2 className="h-5 w-5 animate-spin text-fuchsia-600" />
-              <p className="text-sm uppercase tracking-[0.3em] text-slate-500">
-                calibrating dossier
-              </p>
-            </div>
-          )}
-
-          {!loading && dossier && (
+          {selectedName && (
             <main className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
               <section className="space-y-8">
-                <SummaryPanel 
-                  dossier={dossier} 
-                  onPhotoUpload={(photoUrl: string) => {
-                    // Directly update the dossier state with the new photo URL
-                    // without triggering a full refetch that causes brief reload
-                    setDossier((prev) => {
-                      if (!prev?.person) return prev;
-                      return {
-                        ...prev,
-                        person: {
-                          ...prev.person,
-                          photo_url: photoUrl,
-                        },
-                      };
-                    });
-                  }}
-                />
-                <TimelinePanel
-                  dossier={dossier}
-                  isAdding={isAddingDate}
-                  onToggleAdd={() => setIsAddingDate((prev) => !prev)}
-                  dateForm={dateForm}
-                  onFormChange={setDateForm}
-                  onSubmit={handleAddDate}
-                  busy={secondaryLoading}
-                />
-                <MemoryPanel memories={dossier.memories} />
+                {dossier ? (
+                  <>
+                    <SummaryPanel 
+                      dossier={dossier} 
+                      onPhotoUpload={(photoUrl: string) => {
+                        // Directly update the dossier state with the new photo URL
+                        // without triggering a full refetch that causes brief reload
+                        setDossier((prev) => {
+                          if (!prev?.person) return prev;
+                          return {
+                            ...prev,
+                            person: {
+                              ...prev.person,
+                              photo_url: photoUrl,
+                            },
+                          };
+                        });
+                      }}
+                    />
+                    <TimelinePanel
+                      dossier={dossier}
+                      isAdding={isAddingDate}
+                      onToggleAdd={() => setIsAddingDate((prev) => !prev)}
+                      dateForm={dateForm}
+                      onFormChange={setDateForm}
+                      onSubmit={handleAddDate}
+                      busy={secondaryLoading}
+                    />
+                    <MemoryPanel memories={dossier.memories} />
+                  </>
+                ) : (
+                  <>
+                    <SummaryPanelSkeleton />
+                    <TimelinePanelSkeleton />
+                    <MemoryPanelSkeleton />
+                  </>
+                )}
               </section>
 
               <section className="space-y-8">
-                <DetailsPanel
-                  details={detailsDraft}
-                  onChange={setDetailsDraft}
-                  onSave={handleSaveDetails}
-                  busy={secondaryLoading}
-                  dossier={dossier}
-                />
-                <SignalsPanel dossier={dossier} />
-                <ChatPanel
-                  chatHistory={chatHistory}
-                  inputValue={chatInput}
-                  onInputChange={setChatInput}
-                  onSend={handleSendChat}
-                  pending={chatPending}
-                />
+                {dossier ? (
+                  <>
+                    <DetailsPanel
+                      details={detailsDraft}
+                      onChange={setDetailsDraft}
+                      onSave={handleSaveDetails}
+                      busy={secondaryLoading}
+                      dossier={dossier}
+                    />
+                    <SignalsPanel dossier={dossier} />
+                    <ChatPanel
+                      chatHistory={chatHistory}
+                      inputValue={chatInput}
+                      onInputChange={setChatInput}
+                      onSend={handleSendChat}
+                      pending={chatPending}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <DetailsPanelSkeleton />
+                    <SignalsPanelSkeleton />
+                    <ChatPanelSkeleton />
+                  </>
+                )}
               </section>
             </main>
           )}
@@ -993,6 +1000,110 @@ function ChatPanel({
             <Send className="h-4 w-4" />
           )}
         </Button>
+      </div>
+    </div>
+  );
+}
+
+function SummaryPanelSkeleton() {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-white p-6 shadow-lg backdrop-blur">
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-start gap-4 flex-1">
+            <div className="h-20 w-20 rounded-full bg-slate-200 animate-pulse" />
+            <div className="flex-1">
+              <div className="h-4 w-24 bg-slate-200 rounded animate-pulse mb-2" />
+              <div className="h-8 w-48 bg-slate-200 rounded animate-pulse mb-2" />
+              <div className="h-4 w-full bg-slate-200 rounded animate-pulse" />
+            </div>
+          </div>
+          <div className="h-6 w-32 bg-slate-200 rounded-full animate-pulse" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TimelinePanelSkeleton() {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div>
+          <div className="h-4 w-32 bg-slate-200 rounded animate-pulse mb-2" />
+          <div className="h-6 w-24 bg-slate-200 rounded animate-pulse" />
+        </div>
+        <div className="h-9 w-32 bg-slate-200 rounded-full animate-pulse" />
+      </div>
+      <div className="space-y-4">
+        <div className="h-24 bg-slate-100 rounded-2xl animate-pulse" />
+        <div className="h-24 bg-slate-100 rounded-2xl animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+function MemoryPanelSkeleton() {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <div className="h-4 w-32 bg-slate-200 rounded animate-pulse mb-2" />
+          <div className="h-6 w-48 bg-slate-200 rounded animate-pulse" />
+        </div>
+        <div className="h-5 w-5 bg-slate-200 rounded animate-pulse" />
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="h-32 bg-slate-100 rounded-2xl animate-pulse" />
+        <div className="h-32 bg-slate-100 rounded-2xl animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+function DetailsPanelSkeleton() {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <div className="h-4 w-32 bg-slate-200 rounded animate-pulse mb-2" />
+          <div className="h-6 w-24 bg-slate-200 rounded animate-pulse" />
+        </div>
+        <div className="h-9 w-32 bg-slate-200 rounded-full animate-pulse" />
+      </div>
+      <div className="grid gap-4">
+        <div className="h-20 bg-slate-100 rounded-xl animate-pulse" />
+        <div className="h-20 bg-slate-100 rounded-xl animate-pulse" />
+        <div className="h-20 bg-slate-100 rounded-xl animate-pulse" />
+        <div className="h-20 bg-slate-100 rounded-xl animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+function SignalsPanelSkeleton() {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-fuchsia-50 to-white p-6 shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <div className="h-4 w-32 bg-slate-200 rounded animate-pulse" />
+        <div className="h-4 w-24 bg-slate-200 rounded animate-pulse" />
+      </div>
+      <div className="h-4 w-full bg-slate-200 rounded animate-pulse" />
+    </div>
+  );
+}
+
+function ChatPanelSkeleton() {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="mb-4">
+        <div className="h-4 w-32 bg-slate-200 rounded animate-pulse mb-2" />
+        <div className="h-6 w-48 bg-slate-200 rounded animate-pulse" />
+      </div>
+      <div className="h-64 bg-slate-50 rounded-2xl animate-pulse mb-4" />
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-16 bg-slate-100 rounded-2xl animate-pulse" />
+        <div className="h-16 w-16 bg-slate-200 rounded-2xl animate-pulse" />
       </div>
     </div>
   );

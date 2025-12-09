@@ -136,6 +136,7 @@ class MCPClientManager:
 
     async def disconnect_server(self, name: str):
         """Disconnect from an MCP server and cleanup resources."""
+        import asyncio
         errors = []
         
         # Close session
@@ -144,6 +145,10 @@ class MCPClientManager:
                 session = self.sessions[name]
                 await session.__aexit__(None, None, None)
                 del self.sessions[name]
+            except (asyncio.CancelledError, RuntimeError) as e:
+                # Ignore cancellation errors during shutdown
+                if "cancel scope" not in str(e).lower():
+                    errors.append(f"Error closing session: {e}")
             except Exception as e:
                 errors.append(f"Error closing session: {e}")
                 
@@ -153,6 +158,10 @@ class MCPClientManager:
                 stdio_context = self.stdio_contexts[name]
                 await stdio_context.__aexit__(None, None, None)
                 del self.stdio_contexts[name]
+            except (asyncio.CancelledError, RuntimeError) as e:
+                # Ignore cancellation errors during shutdown
+                if "cancel scope" not in str(e).lower():
+                    errors.append(f"Error closing stdio context: {e}")
             except Exception as e:
                 errors.append(f"Error closing stdio context: {e}")
         
@@ -248,8 +257,17 @@ class MCPClientManager:
                 }
 
         except Exception as e:
+            error_msg = str(e)
+            # Check if this is the background_tasks error
+            if "background_tasks" in error_msg:
+                logger.warning(f"Tool {tool_name} on server {server_name} requires FastAPI background_tasks which is not available via MCP. This tool cannot be used.")
+                return {
+                    "error": f"Tool {tool_name} requires FastAPI dependencies that are not available via MCP. Please use an alternative tool.",
+                    "tool_name": tool_name,
+                    "server_name": server_name
+                }
             logger.error(f"Error calling tool {tool_name} on server {server_name}: {e}")
-            return {"error": str(e)}
+            return {"error": error_msg}
 
     async def disconnect_all(self):
         """Disconnect from all MCP servers."""

@@ -4,6 +4,7 @@ FastAPI server for the Python agent.
 import os
 import json
 import uuid
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,7 +18,69 @@ from mcp_client import mcp_manager, setup_mcp_server
 # Load environment variables
 load_dotenv("../.env.local")
 
-app = FastAPI(title="Python Agent API")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage application lifespan: startup and shutdown."""
+    # Startup
+    print("🚀 Starting DateGPT Python backend...")
+
+    # Print MCP status
+    status = validate_configuration()
+    if status["valid_servers"]:
+        print(f"🔌 MCP servers available: {', '.join(status['valid_servers'])}")
+        
+        # Eagerly connect to all enabled MCP servers
+        print("🔄 Pre-connecting to enabled MCP servers...")
+        enabled_servers = get_enabled_servers()
+        
+        for server_name, config in enabled_servers.items():
+            if is_server_configured(server_name):
+                try:
+                    print(f"   Connecting to {server_name}...")
+                    
+                    # Setup the server configuration if not already done
+                    if server_name not in mcp_manager.servers:
+                        success = setup_mcp_server(
+                            server_name, 
+                            config["path"], 
+                            config.get("env_vars"),
+                            command=config.get("command"),
+                            args=config.get("args", [])
+                        )
+                        if not success:
+                            print(f"   ❌ Failed to setup {server_name}")
+                            continue
+                    
+                    # Attempt connection
+                    connected = await mcp_manager.connect_server(server_name)
+                    if connected:
+                        # Get tool count for feedback
+                        tools = await mcp_manager.get_server_tools(server_name)
+                        tool_count = len(tools)
+                        print(f"   ✅ Connected to {server_name} ({tool_count} tools)")
+                    else:
+                        print(f"   ❌ Failed to connect to {server_name}")
+                        
+                except Exception as e:
+                    print(f"   ❌ Error connecting to {server_name}: {str(e)}")
+                    
+        print("🔌 MCP server initialization complete")
+    else:
+        print("⚠️  No MCP servers configured")
+        print("   Run: python setup_mcp.py to configure MCP servers")
+    
+    yield
+    
+    # Shutdown
+    print("🛑 Shutting down DateGPT Python backend...")
+    try:
+        from mcp_client import cleanup_mcp
+        await cleanup_mcp()
+        print("✅ MCP connections cleaned up")
+    except Exception as e:
+        print(f"⚠️  Error during MCP cleanup: {e}")
+
+app = FastAPI(title="Python Agent API", lifespan=lifespan)
 
 # Add CORS middleware
 app.add_middleware(
@@ -450,33 +513,19 @@ async def generate_person_summary(person: Dict[str, Any]) -> str:
         # Get memory_tags from person record
         memory_tags = person.get("memory_tags") or person.get("name", "").lower()
         
-        # Try to query memories from agent-memory-server
-        # Common tool names to try: search_memories, get_memories, query_memories, retrieve_memories
-        memory_tools = [
-            "agent-memory-server_search_memories",
-            "agent-memory-server_get_memories", 
-            "agent-memory-server_query_memories",
-            "agent-memory-server_retrieve_memories",
-            "agent-memory-server_find_memories"
-        ]
-        
+        # Query memories from agent-memory-server using the correct tool name
         memories_text = ""
-        for tool_name in memory_tools:
-            try:
-                # Try with tags parameter
-                result = await execute_mcp_tool(tool_name, {"tags": memory_tags})
-                if result.get("success") and result.get("result"):
-                    memories_text = result["result"]
-                    break
-            except:
-                # Try with query parameter
-                try:
-                    result = await execute_mcp_tool(tool_name, {"query": memory_tags})
-                    if result.get("success") and result.get("result"):
-                        memories_text = result["result"]
-                        break
-                except:
-                    continue
+        try:
+            # Use search_long_term_memory with text parameter (the actual tool name)
+            result = await execute_mcp_tool(
+                "agent-memory-server_search_long_term_memory", 
+                {"text": memory_tags, "limit": 5}
+            )
+            if result.get("success") and result.get("result"):
+                memories_text = result["result"]
+        except Exception as e:
+            # Silently fail - memories are optional
+            pass
         
         # If we got memories, generate a brief summary
         if memories_text and len(memories_text.strip()) > 0:
@@ -633,50 +682,26 @@ async def fetch_memories_for_person(person: Dict[str, Any], limit: int = 12) -> 
     if person_name_lower not in memory_tags:
         memory_tags.append(person_name_lower)
     
-    # Try tag-based tools first (more precise filtering)
-    tag_tools = [
-        "agent-memory-server_search_memories",
-        "agent-memory-server_get_memories",
-        "agent-memory-server_query_memories",
-        "agent-memory-server_retrieve_memories",
-        "agent-memory-server_find_memories",
-    ]
-    
     memories: List[Dict[str, Any]] = []
     last_updated: Optional[str] = None
     
-    # Try each tag-based tool
-    for tool_name in tag_tools:
-        try:
-            # Try with tags parameter (comma-separated string or list)
-            tags_param = ",".join(memory_tags) if memory_tags else person_name_lower
-            result = await execute_mcp_tool(tool_name, {"tags": tags_param, "limit": limit})
-            if result.get("success") and result.get("result"):
-                payload = extract_json_chunk(result["result"])
-                if isinstance(payload, dict):
-                    memories = payload.get("memories", [])
-                    if isinstance(payload, list):
-                        memories = payload
-                elif isinstance(payload, list):
+    # Use the correct agent-memory-server tool: search_long_term_memory
+    try:
+        # Search with the person's name as text
+        result = await execute_mcp_tool(
+            "agent-memory-server_search_long_term_memory",
+            {"text": person_name, "limit": limit * 2},  # Get more to filter
+        )
+        if result.get("success") and result.get("result"):
+            payload = extract_json_chunk(result["result"])
+            if isinstance(payload, dict):
+                memories = payload.get("memories", [])
+                if not memories and isinstance(payload, list):
                     memories = payload
-                if memories:
-                    break
-        except Exception:
-            continue
-    
-    # If tag-based tools didn't work, fall back to text search but filter by entities
-    if not memories:
-        try:
-            result = await execute_mcp_tool(
-                "agent-memory-server_search_long_term_memory",
-                {"text": person_name, "limit": limit * 2},  # Get more to filter
-            )
-            if result.get("success") and result.get("result"):
-                payload = extract_json_chunk(result["result"])
-                if isinstance(payload, dict):
-                    memories = payload.get("memories", [])
-        except Exception:
-            pass
+            elif isinstance(payload, list):
+                memories = payload
+    except Exception:
+        pass
     
     # Filter memories to ensure they match this person
     # Check if memory has the person's name in entities or topics
@@ -743,13 +768,17 @@ async def store_memory_entries(entries: List[Dict[str, Any]]):
         return
     try:
         from mcp_client import execute_mcp_tool
+        
+        # Use the correct tool: agent-memory-server_create_long_term_memories
         payload = {"memories": entries}
-        await execute_mcp_tool(
-            "agent-memory-server_create_long_term_memories",
-            payload,
-        )
+        result = await execute_mcp_tool("agent-memory-server_create_long_term_memories", payload)
+        
+        if not (result.get("success") or result.get("result")):
+            print(f"Warning: Failed to store memories: {result.get('error', 'Unknown error')}")
     except Exception as e:
         print(f"Warning: Failed to store memories: {e}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
 
 async def generate_dossier_brief(person: Dict[str, Any], memories: List[Dict[str, Any]], fallback_summary: str) -> Dict[str, Any]:
     try:
@@ -1800,66 +1829,6 @@ async def delete_calendar_date(date_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete date: {e}")
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize services on startup."""
-    print("🚀 Starting DateGPT Python backend...")
-
-    # Print MCP status
-    status = validate_configuration()
-    if status["valid_servers"]:
-        print(f"🔌 MCP servers available: {', '.join(status['valid_servers'])}")
-        
-        # Eagerly connect to all enabled MCP servers
-        print("🔄 Pre-connecting to enabled MCP servers...")
-        enabled_servers = get_enabled_servers()
-        
-        for server_name, config in enabled_servers.items():
-            if is_server_configured(server_name):
-                try:
-                    print(f"   Connecting to {server_name}...")
-                    
-                    # Setup the server configuration if not already done
-                    if server_name not in mcp_manager.servers:
-                        success = setup_mcp_server(
-                            server_name, 
-                            config["path"], 
-                            config.get("env_vars"),
-                            command=config.get("command"),
-                            args=config.get("args", [])
-                        )
-                        if not success:
-                            print(f"   ❌ Failed to setup {server_name}")
-                            continue
-                    
-                    # Attempt connection
-                    connected = await mcp_manager.connect_server(server_name)
-                    if connected:
-                        # Get tool count for feedback
-                        tools = await mcp_manager.get_server_tools(server_name)
-                        tool_count = len(tools)
-                        print(f"   ✅ Connected to {server_name} ({tool_count} tools)")
-                    else:
-                        print(f"   ❌ Failed to connect to {server_name}")
-                        
-                except Exception as e:
-                    print(f"   ❌ Error connecting to {server_name}: {str(e)}")
-                    
-        print("🔌 MCP server initialization complete")
-    else:
-        print("⚠️  No MCP servers configured")
-        print("   Run: python setup_mcp.py to configure MCP servers")
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup on shutdown."""
-    print("🛑 Shutting down DateGPT Python backend...")
-    try:
-        from mcp_client import cleanup_mcp
-        await cleanup_mcp()
-        print("✅ MCP connections cleaned up")
-    except Exception as e:
-        print(f"⚠️  Error during MCP cleanup: {e}")
 
 if __name__ == "__main__":
     import uvicorn

@@ -12,7 +12,7 @@ export function Header() {
     { href: "/", label: "Dashboard", icon: Home },
     { href: "/calendar", label: "Calendar", icon: Calendar },
     { href: "/faces", label: "Faces", icon: Users },
-    { href: "/dossiers", label: "Love", icon: Heart },
+    { href: "/dossiers", label: "Matches", icon: Heart },
     { href: "/analytics", label: "Analytics", icon: BarChart3 },
   ];
 
@@ -23,7 +23,7 @@ export function Header() {
           <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2 text-lg font-semibold">
               <Heart className="h-5 w-5 text-red-500" />
-              LoveGPT
+              DateGPT
             </Link>
           </div>
           <nav className="flex items-center gap-1">
