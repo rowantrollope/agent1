@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Home, Heart, BarChart3, Calendar, Users } from "lucide-react";
+import { Home, Heart, BarChart3, Calendar, Users, Settings } from "lucide-react";
 
 export function Header() {
   const pathname = usePathname();
@@ -14,6 +14,7 @@ export function Header() {
     { href: "/faces", label: "Faces", icon: Users },
     { href: "/dossiers", label: "Matches", icon: Heart },
     { href: "/analytics", label: "Analytics", icon: BarChart3 },
+    { href: "/settings", label: "Settings", icon: Settings },
   ];
 
   return (

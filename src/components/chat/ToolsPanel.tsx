@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Wrench, ChevronDown, ChevronUp, Plug, AlertCircle, CheckCircle2, XCircle, Power } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Tool {
   name: string;
@@ -27,10 +28,18 @@ interface ToolsData {
   servers: Record<string, ServerInfo>;
 }
 
-export function ToolsPanel() {
+interface ToolsPanelProps {
+  defaultExpanded?: boolean;
+  className?: string;
+}
+
+export function ToolsPanel({ defaultExpanded = false, className }: ToolsPanelProps) {
   const [toolsData, setToolsData] = useState<ToolsData | null>(null);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [, setLoading] = useState(false);
+  
+  // Always keep expanded when defaultExpanded is true
+  const effectiveExpanded = defaultExpanded ? true : isExpanded;
 
   const loadTools = async () => {
     setLoading(true);
@@ -122,7 +131,7 @@ export function ToolsPanel() {
 
   if (!toolsData) {
     return (
-      <Card className="border-t-0 rounded-t-none">
+      <Card className={cn(className || "border-t rounded-t-none", defaultExpanded && "py-0")}>
         <div className="p-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Wrench className="h-4 w-4" />
@@ -138,7 +147,7 @@ export function ToolsPanel() {
   const totalTools = Object.values(toolsData.servers).reduce((sum, server) => sum + server.tools.length, 0);
 
   return (
-    <Card className="border-t-0 rounded-t-none">
+    <Card className={cn(className || "border-t rounded-t-none", defaultExpanded && "py-0")}>
       {/* Header */}
       <div className="p-3 border-b bg-muted/30">
         <div className="flex items-center justify-between">
@@ -154,25 +163,27 @@ export function ToolsPanel() {
               <Plug className="h-3 w-3" />
               {connectedServers}/{totalServers} servers
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="h-6 w-6 p-0"
-            >
-              {isExpanded ? (
-                <ChevronUp className="h-3 w-3" />
-              ) : (
-                <ChevronDown className="h-3 w-3" />
-              )}
-            </Button>
+            {!defaultExpanded && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="h-6 w-6 p-0"
+              >
+                {isExpanded ? (
+                  <ChevronUp className="h-3 w-3" />
+                ) : (
+                  <ChevronDown className="h-3 w-3" />
+                )}
+              </Button>
+            )}
           </div>
         </div>
       </div>
 
       {/* Content */}
-      {isExpanded && (
-        <div className="p-3 max-h-60 overflow-y-auto">
+      {effectiveExpanded && (
+        <div className={`p-3 ${defaultExpanded ? '' : 'max-h-60'} overflow-y-auto`}>
           {!toolsData.success ? (
             <div className="text-sm text-red-600">
               Error loading tools: {toolsData.error}

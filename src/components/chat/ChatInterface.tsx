@@ -11,7 +11,6 @@ interface RawChatMessage {
 }
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
-import { ToolsPanel } from "./ToolsPanel";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Trash2, Bot } from "lucide-react";
@@ -113,7 +112,7 @@ export function ChatInterface() {
 
   return (
     <div className="flex flex-col h-full min-h-0 overflow-hidden">
-      <Card className="flex flex-col flex-1 min-h-0">
+      <Card className="flex flex-col flex-1 min-h-0 pt-0 pb-0">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-muted/50 flex-shrink-0">
           <div className="flex items-center gap-2">
@@ -174,11 +173,6 @@ export function ChatInterface() {
           <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
         </div>
       </Card>
-
-      {/* Tools Panel */}
-      <div className="flex-shrink-0">
-        <ToolsPanel />
-      </div>
     </div>
   );
 }
