@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+    :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -24,9 +24,9 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
-  }
+    }
 
-  .dark {
+    .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -46,48 +46,48 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-  }
+    }
 }
 
 @layer base {
-  * {
+    * {
     @apply border-border;
-  }
-  body {
+    }
+    body {
     @apply bg-background text-foreground;
-  }
+    }
 }
 
 @layer utilities {
-  .scrollbar-subtle {
+    .scrollbar-subtle {
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 #f1f5f9;
-  }
-  .scrollbar-subtle::-webkit-scrollbar {
+    }
+    .scrollbar-subtle::-webkit-scrollbar {
     width: 6px;
-  }
-  .scrollbar-subtle::-webkit-scrollbar-track {
+    }
+    .scrollbar-subtle::-webkit-scrollbar-track {
     background: #f1f5f9;
     border-radius: 3px;
-  }
-  .scrollbar-subtle::-webkit-scrollbar-thumb {
+    }
+    .scrollbar-subtle::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 3px;
-  }
-  .scrollbar-subtle::-webkit-scrollbar-thumb:hover {
+    }
+    .scrollbar-subtle::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
-  }
+    }
 
-  .heartbeat {
+    .heartbeat {
     animation: heartbeat 1.5s ease-in-out infinite;
-  }
+    }
 
-  @keyframes heartbeat {
+    @keyframes heartbeat {
     0%, 50%, 100% {
-      transform: scale(1);
+            transform: scale(1);
     }
     25% {
-      transform: scale(1.2);
+            transform: scale(1.2);
     }
-  }
+    }
 }

@@ -1,0 +1,42 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+indent_style = space
+indent_size = 4
+
+# TypeScript/JavaScript files
+[*.{ts,tsx,js,jsx,mjs}]
+indent_size = 4
+
+# Python files (PEP 8 recommends 4 spaces)
+[*.py]
+indent_size = 4
+
+# JSON files
+[*.json]
+indent_size = 4
+
+# YAML files
+[*.{yml,yaml}]
+indent_size = 4
+
+# Markdown files
+[*.md]
+indent_size = 4
+trim_trailing_whitespace = false
+
+# CSS files
+[*.css]
+indent_size = 4
+
+# Shell scripts
+[*.sh]
+indent_size = 4
+
